@@ -15,7 +15,7 @@ func NewParcelStore(db *sql.DB) ParcelStore {
 
 func (s ParcelStore) Add(p Parcel) (int, error) {
 	// реализуйте добавление строки в таблицу parcel, используйте данные из переменной p
-	res, err := s.db.Exec("INSERT INTO parsel(client, status, address, created_at) VALUES (:client, :status, :address, :created_at)",
+	res, err := s.db.Exec("INSERT INTO parcel(client, status, address, created_at) VALUES (:client, :status, :address, :created_at)",
 		sql.Named("client", p.Client),
 		sql.Named("status", p.Status),
 		sql.Named("address", p.Address),
@@ -46,7 +46,7 @@ func (s ParcelStore) Get(number int) (Parcel, error) {
 func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 	// реализуйте чтение строк из таблицы parcel по заданному client
 	// здесь из таблицы может вернуться несколько строк
-	rows, err := s.db.Query("SELECT * FROM parcel WHERE cklent = :client",
+	rows, err := s.db.Query("SELECT * FROM parcel WHERE client = :client",
 		sql.Named("client", client))
 	if err != nil {
 		return nil, err
@@ -100,8 +100,8 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 		return errors.New("the parcel has already sent or delivered")
 	}
 
-	_, err = s.db.Exec("UPDATE parcel SET address = :adress WHERE number = :number",
-		sql.Named("status", address),
+	_, err = s.db.Exec("UPDATE parcel SET address = :address WHERE number = :number",
+		sql.Named("address", address),
 		sql.Named("number", number))
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func (s ParcelStore) Delete(number int) error {
 	if actualStatus != ParcelStatusRegistered {
 		return errors.New("the parcel has already sent or delivered")
 	}
-	_, err = s.db.Exec("DELETE FROM parcel WHERE number = := :number",
+	_, err = s.db.Exec("DELETE FROM parcel WHERE number = :number",
 		sql.Named("number", number))
 	if err != nil {
 		return err
