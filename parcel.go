@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"errors"
 )
 
 type ParcelStore struct {
@@ -24,7 +23,11 @@ func (s ParcelStore) Add(p Parcel) (int, error) {
 		return 0, err
 	}
 	// верните идентификатор последней добавленной записи
-	id, _ := res.LastInsertId()
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
 	return int(id), nil
 }
 
@@ -82,27 +85,11 @@ func (s ParcelStore) SetStatus(number int, status string) error {
 func (s ParcelStore) SetAddress(number int, address string) error {
 	// реализуйте обновление адреса в таблице parcel
 	// менять адрес можно только если значение статуса registered
-	rows, err := s.db.Query("SELECT status FROM parcel WHERE number = :number",
-		sql.Named("number", number))
-	if err != nil {
-		return err
-	}
 
-	var actualStatus string
-	for rows.Next() {
-		err = rows.Scan(&actualStatus)
-		if err != nil {
-			return err
-		}
-	}
-
-	if actualStatus != ParcelStatusRegistered {
-		return errors.New("the parcel has already sent or delivered")
-	}
-
-	_, err = s.db.Exec("UPDATE parcel SET address = :address WHERE number = :number",
+	_, err := s.db.Exec("UPDATE parcel SET address = :address WHERE number = :number AND status = :status",
 		sql.Named("address", address),
-		sql.Named("number", number))
+		sql.Named("number", number),
+		sql.Named("status", ParcelStatusRegistered))
 	if err != nil {
 		return err
 	}
@@ -112,27 +99,12 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 func (s ParcelStore) Delete(number int) error {
 	// реализуйте удаление строки из таблицы parcel
 	// удалять строку можно только если значение статуса registered
-	rows, err := s.db.Query("SELECT status FROM parcel WHERE number = :number",
-		sql.Named("number", number))
+	_, err := s.db.Exec("DELETE FROM parcel WHERE number = :number AND status = :status",
+		sql.Named("number", number),
+		sql.Named("status", ParcelStatusRegistered))
 	if err != nil {
 		return err
 	}
 
-	var actualStatus string
-	for rows.Next() {
-		err = rows.Scan(&actualStatus)
-		if err != nil {
-			return err
-		}
-	}
-
-	if actualStatus != ParcelStatusRegistered {
-		return errors.New("the parcel has already sent or delivered")
-	}
-	_, err = s.db.Exec("DELETE FROM parcel WHERE number = :number",
-		sql.Named("number", number))
-	if err != nil {
-		return err
-	}
 	return nil
 }

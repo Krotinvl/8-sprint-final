@@ -33,9 +33,7 @@ func getTestParcel() Parcel {
 func TestAddGetDelete(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db")
-	if err != nil {
-		t.Fatalf("failed to open db: %v", err)
-	}
+	require.NoErrorf(t, err, "failed to open db: %v", err)
 
 	defer db.Close()
 
@@ -52,10 +50,10 @@ func TestAddGetDelete(t *testing.T) {
 	// проверьте, что значения всех полей в полученном объекте совпадают со значениями полей в переменной parcel
 	actualParcel, err := store.Get(id)
 	require.NoError(t, err)
-	assert.Equal(t, parcel.Client, actualParcel.Client)
-	assert.Equal(t, parcel.Status, actualParcel.Status)
-	assert.Equal(t, parcel.Address, actualParcel.Address)
-	assert.Equal(t, parcel.CreatedAt, actualParcel.CreatedAt)
+
+	parcel.Number = actualParcel.Number
+
+	assert.Equal(t, parcel, actualParcel)
 
 	// delete
 	// удалите добавленную посылку, убедитесь в отсутствии ошибки
@@ -71,9 +69,7 @@ func TestAddGetDelete(t *testing.T) {
 func TestSetAddress(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db")
-	if err != nil {
-		t.Fatalf("failed to open db: %v", err)
-	}
+	require.NoErrorf(t, err, "failed to open db: %v", err)
 	defer db.Close()
 
 	store := NewParcelStore(db)
@@ -93,16 +89,14 @@ func TestSetAddress(t *testing.T) {
 	// получите добавленную посылку и убедитесь, что адрес обновился
 	actualParcel, err := store.Get(id)
 	require.NoError(t, err)
-	assert.Equal(t, actualParcel.Address, newAddress)
+	assert.Equal(t, newAddress, actualParcel.Address)
 }
 
 // TestSetStatus проверяет обновление статуса
 func TestSetStatus(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db")
-	if err != nil {
-		t.Fatalf("failed to open db: %v", err)
-	}
+	require.NoErrorf(t, err, "failed to open db: %v", err)
 
 	defer db.Close()
 
@@ -125,16 +119,14 @@ func TestSetStatus(t *testing.T) {
 	// получите добавленную посылку и убедитесь, что статус обновился
 	actualParcel, err := store.Get(id)
 	require.NoError(t, err)
-	assert.Equal(t, actualParcel.Status, newStatus)
+	assert.Equal(t, newStatus, actualParcel.Status)
 }
 
 // TestGetByClient проверяет получение посылок по идентификатору клиента
 func TestGetByClient(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db")
-	if err != nil {
-		t.Fatalf("failed to open db: %v", err)
-	}
+	require.NoErrorf(t, err, "failed to open db: %v", err)
 
 	defer db.Close()
 

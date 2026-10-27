@@ -104,6 +104,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to open db: %v\n", err)
 	}
+	defer db.Close()
 
 	store := NewParcelStore(db)
 	service := NewParcelService(store)
